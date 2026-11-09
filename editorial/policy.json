@@ -1,0 +1,11 @@
+{
+  "project": "Agentic SDLC Premium",
+  "visibility": "private",
+  "public_release_requires_explicit_approval": true,
+  "minimum_pages": 1,
+  "max_critical_issues": 0,
+  "review_flags_are_blockers": false,
+  "expected_bookmarks": 54,
+  "expected_internal_links": 28,
+  "expected_page_count": 323
+}
