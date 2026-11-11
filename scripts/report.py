@@ -3,7 +3,6 @@
 import argparse
 import json
 from pathlib import Path
-from datetime import datetime, timezone
 
 def build_report(qa, manifest):
     issues=qa.get("critical_issues", [])
@@ -17,8 +16,8 @@ def build_report(qa, manifest):
         f"- Links internos: **{qa.get('internal_links', '?')}**",
         f"- Falhas criticas: **{len(issues)}**",
         f"- Sinalizacoes para revisao humana: **{len(reviews)}**",
-        f"- Origem: \`{manifest.get('source_filename', 'desconhecida')}\`",
-        f"- ID do Drive: \`{manifest.get('drive_file_id', 'desconhecido')}\`",
+        f"- Origem: `{manifest.get('source_filename', 'desconhecida')}`",
+        f"- ID do Drive: `{manifest.get('drive_file_id', 'desconhecido')}`",
         "",
         "## Falhas criticas",
     ]
