@@ -1,20 +1,29 @@
 # Agentic SDLC Premium | Esteira editorial privada
 
-Projeto editorial versionado. **Nao publicar automaticamente.**
+**Sem OpenAI API e sem publicacao automatica.**
 
-## Estado da implantacao
-- GitHub Actions: agendamento diario 12:00 UTC (09:00 America/Sao_Paulo), PR e execucao manual.
-- QA: integridade de marcadores, links internos e revisao de paginas orfas.
-- Preview: artefato privado de GitHub Actions, nunca GitHub Pages.
-- Bloqueio intencional: a fonte `source/current.pdf` precisa ser incorporada.
-- Codex: **nao conectado ainda**. Agendamento nao equivale a edicao autonoma.
-- Nenhum deploy publico, auto-merge ou permissao de escrita em workflows.
+## Como funciona
 
-## Proximas etapas
-1. Importar PDF V0.6 de 323 paginas, verificar checksum e manter fonte editavel em `content/`.
-2. Portar o gate de aproveitamento de pagina e testes visuais.
-3. Configurar executor Codex com credenciais seguras e PRs draft.
-4. Revisar PR e liberar somente por aprovacao humana.
+- `source/current.pdf`: documento V0.6 de 323 paginas, importado do Google Drive com hash fixado no manifesto.
+- `editorial/source_manifest.json`: origem e SHA-256 verificados antes de gerar a previa.
+- `editorial/policy.json`: gates minimos de integridade (paginas, marcadores, links, vazio fisico).
+- `scripts/qa_pdf.py`: verifica a baseline e sinaliza paginas pouco preenchidas para revisao humana.
+- `scripts/report.py`: gera `build/EDITORIAL_REPORT.md` sem LLM.
+- `scripts/review_images.py`: cria PNGs de paginas sinalizadas para revisao visual.
+- `.github/workflows/editorial.yml`: executa em PRs, main, manualmente e diariamente as 12:00 UTC (09:00 Brasilia).
+
+## Onde acompanhar
+
+- GitHub Actions: execucoes, resultados e artefatos privados (14 dias)
+- `editorial/backlog.md`: prioridades e criterios para evolucao
+- Automacao do ChatGPT: resumo diario as 18:00, independente do GitHub Actions
+
+## Limitacoes reais
+
+Esta esteira **valida e gera previas**. Ela nao escreve autonomamente novos capitulos nem aplica correcoes editoriais via IA. Para isso seria necessaria integracao adicional, que esta explicitamente descartada neste momento por custo.
+
+GitHub Actions usa a franquia e as regras de cobranca da conta GitHub. As execucoes devem ser monitoradas para permanecer dentro do limite do plano. Nao existem secrets de API OpenAI exigidos.
 
 ## Governanca
-A publicacao e uma etapa separada, sem acionamento automatico. Nao salvar tokens no repositorio.
+
+Apostila e relatorios permanecem privados. Sem GitHub Pages, releases publicas, deploy, auto-merge ou publicação automatica. Edicoes de conteudo devem ser propostas por PR, com QA, revisao humana e aprovacao antes de qualquer publicacao.
