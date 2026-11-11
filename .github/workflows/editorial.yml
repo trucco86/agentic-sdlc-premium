@@ -1,0 +1,61 @@
+name: Editorial QA and private preview
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 12 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: editorial-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compile scripts
+        run: python -m py_compile scripts/qa_pdf.py scripts/build.py scripts/report.py scripts/review_images.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Check source presence
+        id: source
+        run: |
+          if [ -f source/current.pdf ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build private preview and run QA
+        if: steps.source.outputs.available == 'true'
+        run: |
+          python scripts/build.py
+          python scripts/qa_pdf.py build/agentic-sdlc-preview.pdf --output build/qa.json
+      - name: Render review images and report
+        if: always() && steps.source.outputs.available == 'true'
+        run: |
+          if [ -f build/qa.json ]; then
+            python scripts/report.py
+            python scripts/review_images.py build/agentic-sdlc-preview.pdf --limit 20
+            cat build/EDITORIAL_REPORT.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Explain missing source
+        if: steps.source.outputs.available != 'true'
+        run: |
+          echo "::error::PDF fonte nao incorporado. A esteira nao pode afirmar sucesso editorial."
+          exit 1
+      - name: Upload private QA artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-editorial-preview
+          path: build/
+          retention-days: 14
