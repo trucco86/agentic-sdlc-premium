@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Agentic SDLC Premium | Protótipo privado</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color-scheme:dark;background:#0b1220;color:#e5edf9}*{box-sizing:border-box}body{margin:0}header{padding:28px max(22px,calc((100vw - 1100px)/2));background:#101e34;border-bottom:1px solid #263851}header small{color:#91b8e8}h1{margin:8px 0;font-size:clamp(28px,4vw,44px)}.subtitle{color:#a9bbd4;max-width:70ch}main{max-width:1100px;margin:auto;padding:28px 22px;display:grid;grid-template-columns:250px minmax(0,1fr);gap:30px}nav{border-right:1px solid #263851;padding-right:18px}nav a{display:block;color:#b7d5fa;padding:11px;border-radius:8px;text-decoration:none}nav a:hover,nav a:focus{background:#203b5d}article{line-height:1.75;max-width:75ch}h2{margin-top:0}h3{margin-top:26px}code{background:#203047;padding:2px 5px;border-radius:4px}pre{background:#14253c;padding:16px;overflow:auto;border-radius:10px}.notice{border:1px solid #3d6389;border-radius:10px;padding:14px;margin:20px 0;background:#132740}footer{max-width:1100px;margin:20px auto;padding:20px;color:#94a9c2;font-size:14px}@media(max-width:720px){main{display:block}nav{border:0;border-bottom:1px solid #263851;margin-bottom:22px;padding-bottom:12px}nav a{display:inline-block}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header><small>PROTÓTIPO LOCAL • NÃO PUBLICADO</small><h1>Agentic SDLC Premium</h1><p class="subtitle">Uma trilha versionada para estudar engenharia de software com agentes, verificação e governança.</p></header>
+<main><nav aria-label="Navegação do conteúdo"><strong>Trilha de aprendizado</strong><a href="#visao">Visão geral</a><a href="#aula">Aula piloto</a><a href="#exemplo">Exemplo prático</a><a href="#rastreabilidade">Rastreabilidade</a><a href="#proximos">Próximos passos</a></nav>
+<article><section id="visao"><h2>Visão geral</h2><p>Agentic SDLC é a aplicação de agentes de IA em etapas do ciclo de desenvolvimento, com critérios de aceite, validação automatizada e revisão humana proporcional ao risco.</p><div class="notice"><strong>Estado editorial:</strong> conteúdo demonstrativo, ainda não reconciliado com a edição V0.6 de 323 páginas. Este site não substitui a fonte canônica.</div></section>
+<section id="aula"><h2>Aula piloto: especificações verificáveis</h2><p><strong>Objetivo:</strong> transformar uma solicitação vaga em critérios testáveis antes de permitir alterações por agentes.</p><h3>Conceito</h3><p>Uma especificação verificável descreve entradas, saídas, invariantes e cenários de falha. O agente propõe a implementação; testes e revisão independente verificam o resultado.</p><h3>Para fixar</h3><p>Qual evidência demonstraria que um agente corrigiu um fluxo sem introduzir regressões?</p></section>
+<section id="exemplo"><h2>Exemplo: checkout idempotente</h2><p>Um cliente pode reenviar a mesma solicitação por timeout. O sistema deve evitar pedidos duplicados quando recebe a mesma chave de idempotência.</p><pre><code>Given uma chave de idempotência válida
+When a mesma operação é enviada duas vezes
+Then existe no máximo um pedido confirmado
+And ambas as respostas apontam para o mesmo pedido</code></pre><p><strong>Critério de aceite:</strong> teste automatizado cobrindo repetição e concorrência, acompanhado de evidências de execução.</p></section>
+<section id="rastreabilidade"><h2>Rastreabilidade da aprendizagem</h2><p>Uma aula só será marcada como incorporada ao material principal quando houver identificador, resumo revisado, capítulo de destino e PR aprovado. Esta aula é apenas um exemplo e não representa participação real do usuário.</p><p><code>lesson_id: demo-verifiable-specs-001</code><br><code>status: demonstracao_nao_publicada</code></p></section>
+<section id="proximos"><h2>Próximos passos</h2><p>Comparar o documento mestre e o PDF V0.6; estruturar capítulos em Markdown; adicionar busca, acessibilidade e testes de integridade; habilitar publicação somente com aprovação explícita.</p></section></article></main>
+<footer>Protótipo de navegação. Sem telemetria, autenticação ou publicação automática.</footer>
+</body></html>
