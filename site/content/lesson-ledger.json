@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "source_of_truth": "GitHub PRs aprovados após migração",
+  "migration_status": "not_started",
+  "entries": [
+    {
+      "lesson_id": "demo-verifiable-specs-001",
+      "chapter_ids": [
+        "chapter-agentic-sdlc-foundations"
+      ],
+      "status": "demo",
+      "source_run_id": null,
+      "review_pr": null,
+      "approved": false,
+      "incorporated": false
+    }
+  ]
+}
