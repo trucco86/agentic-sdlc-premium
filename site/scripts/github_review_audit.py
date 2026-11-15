@@ -19,7 +19,7 @@ def audit(pr, reviews):
     author = ((pr.get("user") or {}).get("login") or "").lower()
     latest = latest_reviews(reviews)
     approved = sorted(login for login, review in latest.items()
-                      if review.get("state") == "APPROVED" and login != author)
+                      if review.get("state") == "APPROVED" and login != author\n                      and review.get("commit_id") == (pr.get("head") or {}).get("sha"))
     changes = sorted(login for login, review in latest.items()
                      if review.get("state") == "CHANGES_REQUESTED")
     return {
@@ -28,7 +28,7 @@ def audit(pr, reviews):
         "head_sha": (pr.get("head") or {}).get("sha"),
         "approved_reviewers": approved,
         "changes_requested_by": changes,
-        "independent_approvals": len(approved),
+        "independent_approvals": len(approved),\n        "approval_scope": "current_head_sha_only",
         "human_release_authorized": False,
         "merge_authorized": False,
         "publish_authorized": False,
