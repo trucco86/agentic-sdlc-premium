@@ -1,0 +1,15 @@
+{
+  "id": "demo-verifiable-specs-001",
+  "title": "Especificações verificáveis",
+  "date": null,
+  "status": "demo",
+  "attendance_verified": false,
+  "source_kind": "synthetic_demo",
+  "summary": "Uma especificação verificável define entradas, saídas, invariantes e falhas. Agentes propõem mudanças, mas testes e revisão independente determinam a aceitação.",
+  "chapter_ids": [
+    "chapter-agentic-sdlc-foundations"
+  ],
+  "pr": null,
+  "approved": false,
+  "canonical": false
+}
