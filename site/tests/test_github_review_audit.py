@@ -17,18 +17,22 @@ class GithubReviewAuditTests(unittest.TestCase):
         self.assertFalse(result["merge_authorized"])
         self.assertFalse(result["publish_authorized"])
     def test_author_approval_does_not_count(self):
-        reviews = [{"user":{"login":"owner"},"state":"APPROVED","submitted_at":"2026-11-15T00:00:00Z"}]
+        reviews = [{"user":{"login":"owner"},"state":"APPROVED","commit_id":"abc123","submitted_at":"2026-11-15T00:00:00Z"}]
         self.assertEqual(mod.audit(self.pr, reviews)["independent_approvals"], 0)
     def test_latest_change_request_supersedes_approval(self):
         reviews = [
-            {"user":{"login":"reviewer"},"state":"APPROVED","submitted_at":"2026-11-15T00:00:00Z"},
+            {"user":{"login":"reviewer"},"state":"APPROVED","commit_id":"abc123","submitted_at":"2026-11-15T00:00:00Z"},
             {"user":{"login":"reviewer"},"state":"CHANGES_REQUESTED","submitted_at":"2026-11-15T01:00:00Z"}
         ]
         result = mod.audit(self.pr, reviews)
         self.assertEqual(result["independent_approvals"], 0)
         self.assertEqual(result["changes_requested_by"], ["reviewer"])
+    def test_old_commit_approval_is_ignored(self):
+        reviews = [{"user":{"login":"reviewer"},"state":"APPROVED",
+                    "commit_id":"oldsha","submitted_at":"2026-11-15T00:00:00Z"}]
+        self.assertEqual(mod.audit(self.pr, reviews)["independent_approvals"], 0)
     def test_approval_is_not_publication_authorization(self):
-        reviews = [{"user":{"login":"reviewer"},"state":"APPROVED","submitted_at":"2026-11-15T00:00:00Z"}]
+        reviews = [{"user":{"login":"reviewer"},"state":"APPROVED","commit_id":"abc123","submitted_at":"2026-11-15T00:00:00Z"}]
         result = mod.audit(self.pr, reviews)
         self.assertEqual(result["independent_approvals"], 1)
         self.assertFalse(result["human_release_authorized"])
