@@ -1,0 +1,32 @@
+name: Learning site prototype checks
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - '.github/workflows/site-prototype.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate local prototype and governance
+        run: python -m unittest discover -s site/tests -v
+      - name: Enforce editorial content gate
+        run: python site/scripts/validate_content.py
+      - name: Validate source and independent review evidence
+        run: python site/scripts/review_evidence.py
+      - name: Generate editorial decision report
+        run: python site/scripts/editorial_report.py --output site/editorial-report.json
+      - name: Upload private editorial report
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-site-editorial-report
+          path: site/editorial-report.json
+          retention-days: 7

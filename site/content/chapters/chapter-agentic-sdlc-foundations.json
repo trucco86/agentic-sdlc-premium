@@ -1,0 +1,10 @@
+{
+  "id": "chapter-agentic-sdlc-foundations",
+  "title": "Fundamentos de Agentic SDLC",
+  "status": "demo",
+  "source_pdf_verified": false,
+  "lessons": [
+    "demo-verifiable-specs-001"
+  ],
+  "summary": "Exemplo demonstrativo, não migrado do PDF V0.6."
+}

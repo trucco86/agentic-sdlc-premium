@@ -1,0 +1,33 @@
+{
+  "lesson_id": "demo-verifiable-specs-001",
+  "status": "draft",
+  "author": "demo-content-author",
+  "publication_authorized": false,
+  "sources": [
+    {
+      "type": "official_docs",
+      "url": "https://docs.github.com/en/actions",
+      "title": "GitHub Actions documentation",
+      "claim": "GitHub Actions supports workflow automation; this source does not verify the full sample lesson.",
+      "accessed_at": "2026-11-15",
+      "license_status": "pending"
+    }
+  ],
+  "reviews": {
+    "knowledge_curator": {
+      "verdict": "pending",
+      "reviewer": null,
+      "evidence_url": null
+    },
+    "technical_reviewer": {
+      "verdict": "pending",
+      "reviewer": null,
+      "evidence_url": null
+    },
+    "editorial_qa": {
+      "verdict": "pending",
+      "reviewer": null,
+      "evidence_url": null
+    }
+  }
+}
