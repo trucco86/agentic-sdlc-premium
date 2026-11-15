@@ -42,6 +42,7 @@ jobs:
           path: |
             site/editorial-report.json
             site/github-review-audit.json
-            site/release-decision.json\n            site/editorial-summary.md
+            site/release-decision.json
+            site/editorial-summary.md
           if-no-files-found: warn
           retention-days: 7
