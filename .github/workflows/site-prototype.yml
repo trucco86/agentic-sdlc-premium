@@ -22,3 +22,11 @@ jobs:
         run: python site/scripts/validate_content.py
       - name: Validate source and independent review evidence
         run: python site/scripts/review_evidence.py
+      - name: Generate editorial decision report
+        run: python site/scripts/editorial_report.py --output site/editorial-report.json
+      - name: Upload private editorial report
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-site-editorial-report
+          path: site/editorial-report.json
+          retention-days: 7
