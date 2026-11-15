@@ -32,6 +32,8 @@ jobs:
         run: python site/scripts/github_review_audit.py --repository "${{ github.repository }}" --pr "${{ github.event.pull_request.number }}" --output site/github-review-audit.json
       - name: Consolidate safe release decision
         run: python site/scripts/release_decision.py --editorial site/editorial-report.json --github site/github-review-audit.json --output site/release-decision.json
+      - name: Render private human review summary
+        run: python site/scripts/editorial_summary.py --editorial site/editorial-report.json --github site/github-review-audit.json --release site/release-decision.json --output site/editorial-summary.md
       - name: Upload private editorial report
         if: always()
         uses: actions/upload-artifact@v4
@@ -40,6 +42,6 @@ jobs:
           path: |
             site/editorial-report.json
             site/github-review-audit.json
-            site/release-decision.json
+            site/release-decision.json\n            site/editorial-summary.md
           if-no-files-found: warn
           retention-days: 7
