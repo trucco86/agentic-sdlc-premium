@@ -30,9 +30,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python site/scripts/github_review_audit.py --repository "${{ github.repository }}" --pr "${{ github.event.pull_request.number }}" --output site/github-review-audit.json
+      - name: Consolidate safe release decision
+        run: python site/scripts/release_decision.py --editorial site/editorial-report.json --github site/github-review-audit.json --output site/release-decision.json
       - name: Upload private editorial report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: private-site-editorial-report
-          path: |\n            site/editorial-report.json\n            site/github-review-audit.json
+          path: |
+            site/editorial-report.json
+            site/github-review-audit.json
+            site/release-decision.json
+          if-no-files-found: warn
           retention-days: 7
