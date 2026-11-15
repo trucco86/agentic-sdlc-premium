@@ -20,3 +20,5 @@ jobs:
         run: python -m unittest discover -s site/tests -v
       - name: Enforce editorial content gate
         run: python site/scripts/validate_content.py
+      - name: Validate source and independent review evidence
+        run: python site/scripts/review_evidence.py
