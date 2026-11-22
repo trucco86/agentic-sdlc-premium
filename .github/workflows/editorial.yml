@@ -23,7 +23,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Compile scripts
-        run: python -m py_compile scripts/qa_pdf.py scripts/build.py scripts/report.py scripts/review_images.py
+        run: python -m py_compile scripts/qa_pdf.py scripts/build.py scripts/report.py scripts/review_images.py scripts/semantic_diff.py scripts/visual_review_checklist.py
       - name: Unit tests
         run: python -m unittest discover -s tests -v
       - name: Check source presence
@@ -39,11 +39,16 @@ jobs:
         run: |
           python scripts/build.py
           python scripts/qa_pdf.py build/agentic-sdlc-preview.pdf --output build/qa.json
+      - name: Verify private preview preserves source content
+        if: steps.source.outputs.available == 'true'
+        run: |
+          python scripts/semantic_diff.py source/current.pdf build/agentic-sdlc-preview.pdf --output build/semantic-preservation.json
       - name: Render review images and report
         if: always() && steps.source.outputs.available == 'true'
         run: |
           if [ -f build/qa.json ]; then
             python scripts/report.py
+            python scripts/visual_review_checklist.py
             python scripts/review_images.py build/agentic-sdlc-preview.pdf --limit 20
             cat build/EDITORIAL_REPORT.md >> "$GITHUB_STEP_SUMMARY"
           fi
