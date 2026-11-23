@@ -1,4 +1,5 @@
 import hashlib
+import html
 import json
 import tempfile
 import unittest
@@ -25,7 +26,7 @@ class FullHtmlTests(unittest.TestCase):
             build(pdf, manifest, root / "site")
             self.assertTrue((root / "site/index.html").exists())
             self.assertTrue((root / "site/pagina-002.html").exists())
-            self.assertIn("Segunda página", (root / "site/pagina-002.html").read_text())
+            self.assertIn("Segunda página", html.unescape((root / "site/pagina-002.html").read_text()))
             self.assertIn("pagina-002.html", (root / "site/index.html").read_text())
 
     def test_rejects_modified_source(self):
