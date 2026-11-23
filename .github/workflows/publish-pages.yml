@@ -1,0 +1,54 @@
+name: Publish complete HTML book to GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_full_html.py'
+      - 'source/current.pdf'
+      - 'editorial/source_manifest.json'
+      - '.github/workflows/publish-pages.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Verify all tests
+        run: python -m unittest discover -s tests -v
+      - name: Build complete HTML edition
+        run: python scripts/build_full_html.py
+      - name: Validate output and exclude source PDF
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          site = Path("build/full-html")
+          data = json.loads((site/"build-manifest.json").read_text())
+          assert data["pages"] == 323
+          assert len(list(site.glob("pagina-*.html"))) == 323
+          assert (site/"index.html").is_file()
+          assert not list(site.rglob("*.pdf")), "PDF must not be published"
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/full-html
+      - id: deployment
+        uses: actions/deploy-pages@v4
