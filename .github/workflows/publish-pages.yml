@@ -1,4 +1,5 @@
 name: Publish complete HTML book to GitHub Pages
+# Retry publication after repository visibility changed to public.
 on:
   push:
     branches: [main]
