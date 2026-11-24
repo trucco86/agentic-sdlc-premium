@@ -32,6 +32,9 @@ class FullHtmlTests(unittest.TestCase):
             self.assertLess(reader.index('id="p1"'), reader.index('id="p2"'))
             self.assertIn('src="pagina-002.svg"', reader)
             self.assertIn('loading="lazy"', reader)
+            self.assertEqual(reader.count('<details class="page-text">'), 2)
+            self.assertIn("Primeira página", html.unescape(reader))
+            self.assertIn("Segunda página", html.unescape(reader))
             self.assertNotIn('href="pagina-002.html"', reader)
             self.assertIn("Segunda página", html.unescape((root / "site/pagina-002.svg").read_text()))
 
