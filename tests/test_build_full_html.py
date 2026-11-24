@@ -21,6 +21,7 @@ class FullHtmlTests(unittest.TestCase):
             for text in ("Primeira página", "Segunda página"):
                 page = doc.new_page()
                 page.insert_text((72, 72), text)
+            doc.set_toc([[1, "Capítulo inicial", 1], [2, "Seção seguinte", 2]])
             doc.save(pdf)
             doc.close()
             manifest = root / "manifest.json"
@@ -35,6 +36,9 @@ class FullHtmlTests(unittest.TestCase):
             images = re.findall(r'src="data:image/svg\+xml;base64,([^"]+)"', reader)
             self.assertEqual(len(images), 2)
             self.assertIn("Segunda página", html.unescape(base64.b64decode(images[1]).decode()))
+            self.assertIn('href="#p1"><span>Capítulo inicial', reader)
+            self.assertIn('href="#p2"><span>Seção seguinte', reader)
+            self.assertIn('href="#sumario"', reader)
             self.assertIn("Primeira página", html.unescape(reader))
             self.assertIn("Segunda página", html.unescape(reader))
             self.assertNotIn('href="pagina-', reader)
