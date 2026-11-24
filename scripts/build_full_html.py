@@ -30,6 +30,8 @@ def build(source: Path, manifest: Path, output: Path):
                 f'<section class="page" id="p{number}" aria-label="Página {number}">'
                 f'<img src="{svg_name}" width="{round(page.rect.width)}" height="{round(page.rect.height)}" '
                 f'loading="{loading}" decoding="async" alt="Página {number} da apostila">'
+                f'<details class="page-text"><summary>Texto selecionável da página {number}</summary>'
+                f'<div>{html.escape(page.get_text(sort=True))}</div></details>'
                 f'<footer>{number} / {len(doc)}</footer></section>'
             )
             previous = f"pagina-{number-1:03d}.html" if number > 1 else "index.html"
@@ -55,9 +57,9 @@ body{{margin:0;background:#e5e7eb;color:#182233;font:16px system-ui}}
 header{{position:sticky;top:0;z-index:2;background:#101827;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}}
 header h1{{font-size:16px;margin:0}}form{{display:flex;align-items:center;gap:8px}}input{{width:70px}}button,input{{font:inherit;padding:6px}}
 main{{max-width:1000px;margin:auto;padding:12px}}.page{{margin:0 auto 16px;background:white;box-shadow:0 2px 8px #0002}}
-.page img{{display:block;width:100%;height:auto}}footer{{text-align:center;padding:6px;color:#475569;font-size:12px}}
+.page-text{{padding:8px 16px}}.page-text div{{white-space:pre-wrap;overflow-wrap:anywhere}}.page img{{display:block;width:100%;height:auto}}footer{{text-align:center;padding:6px;color:#475569;font-size:12px}}
 @media(max-width:600px){{main{{padding:4px}}.page{{margin-bottom:8px}}}}
-@media print{{header,footer{{display:none}}main{{padding:0;max-width:none}}.page{{break-after:page;box-shadow:none;margin:0}}}}
+@media print{{header,footer,.page-text{{display:none}}main{{padding:0;max-width:none}}.page{{break-after:page;box-shadow:none;margin:0}}}}
 </style></head>
 <body><header><h1>Agentic SDLC Premium · V0.6 · {len(doc)} páginas</h1>
 <form id="jump"><label for="page">Ir à página</label><input id="page" type="number" min="1" max="{len(doc)}" value="1" required><button>Ir</button></form></header>
