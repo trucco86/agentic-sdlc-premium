@@ -44,7 +44,7 @@ header h1{{font-size:16px;margin:0}}form{{display:flex;align-items:center;gap:8p
 main{{max-width:1000px;margin:auto;padding:12px}}.page{{margin:0 auto;background:white;position:relative}}
 .page-text{{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:pre-wrap}}body.text-mode .page-text{{position:static;width:auto;height:auto;clip-path:none;padding:16px;overflow:visible}}body.text-mode .page img{{display:none}}.page img{{display:block;width:100%;height:auto}}footer{{text-align:center;padding:6px;color:#475569;font-size:12px}}
 @media(max-width:600px){{main{{padding:4px}}.page{{margin-bottom:0}}}}
-@media print{{header,footer,.page-text{{display:none}}main{{padding:0;max-width:none}}.page{{break-after:page;box-shadow:none;margin:0}}}}
+@media print{{body.text-mode .page img{{display:block}}header,footer,.page-text{{display:none}}main{{padding:0;max-width:none}}.page{{break-after:page;box-shadow:none;margin:0}}}}
 </style></head>
 <body><header><h1>Agentic SDLC Premium · V0.6 · {len(doc)} páginas</h1>
 <button type="button" id="mode" aria-pressed="false">Modo texto</button><form id="jump"><label for="page">Ir à página</label><input id="page" type="number" min="1" max="{len(doc)}" value="1" required><button>Ir</button></form></header>
