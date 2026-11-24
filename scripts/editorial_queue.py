@@ -12,7 +12,7 @@ def plan(inventory, edition):
         page = source["page"]
         target = records.get(page, {})
         content = target.get("translated_text")
-        if target.get("source_text_sha256") != source["source_text_sha256"] or not isinstance(content, str) or (source["source_text"].strip() and not content.strip()):
+        if not target.get("author") or target.get("source_text_sha256") != source["source_text_sha256"] or not isinstance(content, str) or (source["source_text"].strip() and not content.strip()):
             tasks.append({"page":page,"agent":"translation","source_text_sha256":source["source_text_sha256"]})
             continue
         digest = hashlib.sha256(content.encode()).hexdigest()
@@ -20,7 +20,7 @@ def plan(inventory, edition):
         for role in ("technical","editorial","visual"):
             review = reviews.get(role, {})
             independent = role != "editorial" or review.get("reviewer") != reviews.get("technical", {}).get("reviewer")
-            if review.get("decision") != "approved" or not review.get("reviewer") or review.get("translation_sha256") != digest or not independent:
+            if review.get("decision") != "approved" or not review.get("reviewer") or review.get("translation_sha256") != digest or not independent or review.get("reviewer") == target["author"] or review.get("source_sha256") != inventory["source_sha256"] or review.get("source_text_sha256") != source["source_text_sha256"]:
                 tasks.append({"page":page,"agent":role,"translation_sha256":digest})
                 break
     return tasks
