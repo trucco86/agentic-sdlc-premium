@@ -27,7 +27,16 @@ class FullHtmlTests(unittest.TestCase):
             self.assertTrue((root / "site/index.html").exists())
             self.assertTrue((root / "site/pagina-002.html").exists())
             self.assertIn("Segunda página", html.unescape((root / "site/pagina-002.html").read_text()))
-            self.assertIn("pagina-002.html", (root / "site/index.html").read_text())
+            reader = (root / "site/index.html").read_text()
+            self.assertEqual(reader.count('<section class="page"'), 2)
+            self.assertLess(reader.index('id="p1"'), reader.index('id="p2"'))
+            self.assertIn('src="pagina-002.svg"', reader)
+            self.assertIn('loading="lazy"', reader)
+            self.assertEqual(reader.count('<details class="page-text">'), 2)
+            self.assertIn("Primeira página", html.unescape(reader))
+            self.assertIn("Segunda página", html.unescape(reader))
+            self.assertNotIn('href="pagina-002.html"', reader)
+            self.assertIn("Segunda página", html.unescape((root / "site/pagina-002.svg").read_text()))
 
     def test_rejects_modified_source(self):
         with tempfile.TemporaryDirectory() as folder:
