@@ -1,0 +1,37 @@
+name: Bilingual editorial preparation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/translation_inventory.py
+      - name: Prepare first translation batch
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.editorial_queue import plan
+          folder = Path("build/translation")
+          inv = json.loads((folder/"inventory.json").read_text())
+          assert len(inv["units"]) == 323
+          edition = {"source_sha256":inv["source_sha256"],"language":"en","units":[]}
+          tasks = plan(inv,edition)
+          assert len(tasks) == 323
+          batch = {"source_sha256":inv["source_sha256"],"units":inv["units"][:10],"tasks":tasks[:10]}
+          (folder/"first-batch.json").write_text(json.dumps(batch,ensure_ascii=False,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bilingual-translation-work
+          path: build/translation/
+          retention-days: 14
