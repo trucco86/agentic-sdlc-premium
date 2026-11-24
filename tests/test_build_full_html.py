@@ -38,6 +38,7 @@ class FullHtmlTests(unittest.TestCase):
             self.assertIn("Primeira página", html.unescape(reader))
             self.assertIn("Segunda página", html.unescape(reader))
             self.assertNotIn('href="pagina-', reader)
+            self.assertIn("@media print{body.text-mode .page img{display:block}", reader)
 
     def test_rejects_modified_source(self):
         with tempfile.TemporaryDirectory() as folder:
