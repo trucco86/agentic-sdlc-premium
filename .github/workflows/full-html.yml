@@ -29,7 +29,9 @@ jobs:
           folder = Path("build/full-html")
           manifest = json.loads((folder / "build-manifest.json").read_text())
           assert manifest["pages"] == 323
-          assert len(list(folder.glob("pagina-*.html"))) == 323
+          assert len(list(folder.glob("*.html"))) == 1
+          assert (folder/"index.html").read_text().count('<section class="page"') == 323
+          assert not list(folder.glob("*.svg"))
           assert (folder / "index.html").is_file()
           PY
       - name: Upload private HTML preview
