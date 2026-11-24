@@ -44,7 +44,8 @@ jobs:
           site = Path("build/full-html")
           data = json.loads((site/"build-manifest.json").read_text())
           assert data["pages"] == 323
-          assert len(list(site.glob("pagina-*.html"))) == 323
+          assert len(list(site.glob("*.html"))) == 1
+          assert (site/"index.html").read_text().count('<section class="page"') == 323
           assert (site/"index.html").is_file()
           assert not list(site.rglob("*.pdf")), "PDF must not be published"
           PY
