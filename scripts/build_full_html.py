@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build a complete, page-faithful HTML edition from the versioned private PDF."""
 import argparse
+import base64
 import hashlib
 import html
 import json
@@ -23,30 +24,14 @@ def build(source: Path, manifest: Path, output: Path):
         for number, page in enumerate(doc, 1):
             # SVG preserves diagrams, layout and page content. Text remains text when possible.
             svg = page.get_svg_image(text_as_path=False)
-            svg_name = f"pagina-{number:03d}.svg"
-            (output / svg_name).write_text(svg, encoding="utf-8")
-            loading = "eager" if number == 1 else "lazy"
+            # Embed each page as a self-contained SVG data URI to isolate SVG IDs.
+            encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
             reader_pages.append(
                 f'<section class="page" id="p{number}" aria-label="Página {number}">'
-                f'<img src="{svg_name}" width="{round(page.rect.width)}" height="{round(page.rect.height)}" '
-                f'loading="{loading}" decoding="async" alt="Página {number} da apostila">'
-                f'<details class="page-text"><summary>Texto selecionável da página {number}</summary>'
-                f'<div>{html.escape(page.get_text(sort=True))}</div></details>'
-                f'<footer>{number} / {len(doc)}</footer></section>'
+                f'<img src="data:image/svg+xml;base64,{encoded}" width="{round(page.rect.width)}" height="{round(page.rect.height)}" '
+                f'loading="lazy" decoding="async" alt="Página {number} da apostila">'
+                f'<div class="page-text">{html.escape(page.get_text(sort=True))}</div></section>'
             )
-            previous = f"pagina-{number-1:03d}.html" if number > 1 else "index.html"
-            following = f"pagina-{number+1:03d}.html" if number < len(doc) else "index.html"
-            body = f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agentic SDLC Premium | Página {number}</title>
-<style>body{{margin:0;background:#101827;color:white;font:16px system-ui}}
-nav{{display:flex;justify-content:space-between;gap:12px;padding:14px;flex-wrap:wrap}}
-a{{color:#a8d5ff}}main{{max-width:1000px;margin:auto;padding:12px}}
-svg{{width:100%;height:auto;background:white;display:block}}</style></head>
-<body><nav><a href="index.html">Índice</a><span>Página {number} de {len(doc)}</span>
-<a href="{previous}">Anterior</a><a href="{following}">Próxima</a></nav>
-<main>{svg}</main></body></html>"""
-            (output / f"pagina-{number:03d}.html").write_text(body, encoding="utf-8")
         pages = "\n".join(reader_pages)
         index = f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -56,22 +41,22 @@ svg{{width:100%;height:auto;background:white;display:block}}</style></head>
 body{{margin:0;background:#e5e7eb;color:#182233;font:16px system-ui}}
 header{{position:sticky;top:0;z-index:2;background:#101827;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}}
 header h1{{font-size:16px;margin:0}}form{{display:flex;align-items:center;gap:8px}}input{{width:70px}}button,input{{font:inherit;padding:6px}}
-main{{max-width:1000px;margin:auto;padding:12px}}.page{{margin:0 auto 16px;background:white;box-shadow:0 2px 8px #0002}}
-.page-text{{padding:8px 16px}}.page-text div{{white-space:pre-wrap;overflow-wrap:anywhere}}.page img{{display:block;width:100%;height:auto}}footer{{text-align:center;padding:6px;color:#475569;font-size:12px}}
-@media(max-width:600px){{main{{padding:4px}}.page{{margin-bottom:8px}}}}
-@media print{{header,footer,.page-text{{display:none}}main{{padding:0;max-width:none}}.page{{break-after:page;box-shadow:none;margin:0}}}}
+main{{max-width:1000px;margin:auto;padding:12px}}.page{{margin:0 auto;background:white;position:relative}}
+.page-text{{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:pre-wrap}}body.text-mode .page-text{{position:static;width:auto;height:auto;clip-path:none;padding:16px;overflow:visible}}body.text-mode .page img{{display:none}}.page img{{display:block;width:100%;height:auto}}footer{{text-align:center;padding:6px;color:#475569;font-size:12px}}
+@media(max-width:600px){{main{{padding:4px}}.page{{margin-bottom:0}}}}
+@media print{{body.text-mode .page img{{display:block}}header,footer,.page-text{{display:none}}main{{padding:0;max-width:none}}.page{{break-after:page;box-shadow:none;margin:0}}}}
 </style></head>
 <body><header><h1>Agentic SDLC Premium · V0.6 · {len(doc)} páginas</h1>
-<form id="jump"><label for="page">Ir à página</label><input id="page" type="number" min="1" max="{len(doc)}" value="1" required><button>Ir</button></form></header>
+<button type="button" id="mode" aria-pressed="false">Modo texto</button><form id="jump"><label for="page">Ir à página</label><input id="page" type="number" min="1" max="{len(doc)}" value="1" required><button>Ir</button></form></header>
 <main>{pages}</main>
-<script>document.getElementById('jump').addEventListener('submit',function(e){{e.preventDefault();const n=document.getElementById('page').value;const p=document.getElementById('p'+n);if(p){{p.scrollIntoView();history.replaceState(null,'','#p'+n);}}}});</script>
+<script>document.getElementById("mode").addEventListener("click",function(){{const active=document.body.classList.toggle("text-mode");this.setAttribute("aria-pressed",String(active));this.textContent=active?"Modo visual":"Modo texto";}});document.getElementById('jump').addEventListener('submit',function(e){{e.preventDefault();const n=document.getElementById('page').value;const p=document.getElementById('p'+n);if(p){{p.scrollIntoView();history.replaceState(null,'','#p'+n);}}}});</script>
 </body></html>"""
         (output / "index.html").write_text(index, encoding="utf-8")
-        count = len(list(output.glob("pagina-*.html")))
+        count = len(reader_pages)
         if count != len(doc):
             raise ValueError(f"Incomplete HTML output: {count}/{len(doc)}")
         (output / "build-manifest.json").write_text(json.dumps({"source_sha256":policy["sha256"],"pages":count},indent=2),encoding="utf-8")
-        print(f"Generated {count} complete HTML pages in {output}")
+        print(f"Generated one HTML document with {count} pages in {output}")
 
 
 if __name__ == "__main__":

@@ -44,7 +44,8 @@ jobs:
           site = Path("build/full-html")
           data = json.loads((site/"build-manifest.json").read_text())
           assert data["pages"] == 323
-          assert len(list(site.glob("pagina-*.html"))) == 323
+          assert len(list(site.glob("*.html"))) == 1
+          assert (site/"index.html").read_text().count('<section class="page"') == 323
           assert (site/"index.html").is_file()
           assert not list(site.rglob("*.pdf")), "PDF must not be published"
           PY
@@ -75,4 +76,15 @@ jobs:
         with:
           artifact_name: github-pages-${{ github.run_attempt }}
 
-# Fresh publication run after duplicate artifacts in previous retry.
+      - name: Verify public document matches generated book
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            if curl -fsSL --max-time 60 "https://trucco86.github.io/agentic-sdlc-premium/?v=$GITHUB_SHA" -o /tmp/public-book.html && cmp -s /tmp/public-book.html build/full-html/index.html; then
+              echo "Public HTML matches complete generated book"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Public HTML differs from generated book"
+          exit 1

@@ -1,3 +1,5 @@
+import base64
+import re
 import hashlib
 import html
 import json
@@ -25,18 +27,18 @@ class FullHtmlTests(unittest.TestCase):
             manifest.write_text(json.dumps({"sha256": hashlib.sha256(pdf.read_bytes()).hexdigest(), "pages": 2}))
             build(pdf, manifest, root / "site")
             self.assertTrue((root / "site/index.html").exists())
-            self.assertTrue((root / "site/pagina-002.html").exists())
-            self.assertIn("Segunda página", html.unescape((root / "site/pagina-002.html").read_text()))
             reader = (root / "site/index.html").read_text()
             self.assertEqual(reader.count('<section class="page"'), 2)
             self.assertLess(reader.index('id="p1"'), reader.index('id="p2"'))
-            self.assertIn('src="pagina-002.svg"', reader)
-            self.assertIn('loading="lazy"', reader)
-            self.assertEqual(reader.count('<details class="page-text">'), 2)
+            self.assertEqual(list((root / "site").glob("*.html")), [root / "site/index.html"])
+            self.assertFalse(list((root / "site").glob("*.svg")))
+            images = re.findall(r'src="data:image/svg\+xml;base64,([^"]+)"', reader)
+            self.assertEqual(len(images), 2)
+            self.assertIn("Segunda página", html.unescape(base64.b64decode(images[1]).decode()))
             self.assertIn("Primeira página", html.unescape(reader))
             self.assertIn("Segunda página", html.unescape(reader))
-            self.assertNotIn('href="pagina-002.html"', reader)
-            self.assertIn("Segunda página", html.unescape((root / "site/pagina-002.svg").read_text()))
+            self.assertNotIn('href="pagina-', reader)
+            self.assertIn("@media print{body.text-mode .page img{display:block}", reader)
 
     def test_rejects_modified_source(self):
         with tempfile.TemporaryDirectory() as folder:
