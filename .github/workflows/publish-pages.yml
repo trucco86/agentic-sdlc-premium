@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -51,7 +52,27 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/full-html
+          name: github-pages-${{ github.run_attempt }}
+      - name: Wait for Pages artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_NAME: github-pages-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if count=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=$ARTIFACT_NAME" --jq '[.artifacts[] | select(.expired == false)] | length'); then
+              if [ "$count" = 1 ]; then
+                echo "Pages artifact is visible"
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "::error::Pages artifact did not become uniquely visible"
+          exit 1
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
 
 # Fresh publication run after duplicate artifacts in previous retry.
