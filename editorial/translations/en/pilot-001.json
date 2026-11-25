@@ -1,0 +1,27 @@
+{
+  "source_sha256": "8507e6a5652d0b63ed35a41b6f876c0d31acb40a7d490b7a6660e2d041df8f1f",
+  "language": "en",
+  "units": [
+    {
+      "page": 1,
+      "source_text_sha256": "cf40553a55f70d9fd0bc167eed19f66101bd36f209343b8608ac3dd721de65b9",
+      "translated_text": "AGENTIC SDLC | PREMIUM EDITION V0.6\n\nPage 1",
+      "author": "chatgpt-translation",
+      "reviews": {}
+    },
+    {
+      "page": 2,
+      "source_text_sha256": "42ff8570d62ed450904d9ce507b84a4921347067d6a2aa66634ff5a08a698693",
+      "translated_text": "AGENTIC SDLC | PREMIUM EDITION V0.6\n\nPage 2",
+      "author": "chatgpt-translation",
+      "reviews": {}
+    },
+    {
+      "page": 3,
+      "source_text_sha256": "0bdd9ffdbd7606b059cbd7bc41808c5b05643539d2e9d6c43ec7d65cd249788a",
+      "translated_text": "AGENTIC SDLC / VISUAL EDITION\nAbout the author and this guide\n\nCristian Trucco\n\nTechnology professional with experience leading development teams, software engineering and digital channels.\n\nThis material grew out of my studies in artificial intelligence, Agentic SDLC and software engineering. While preparing it, I used ChatGPT to support learning, research, organization and content structuring, supplementing my studies with technical documentation, articles and other publicly available sources.\n\nMy goal is to share knowledge freely and accessibly, connecting fundamentals, architectures, code examples and practical applications. The sources consulted should be identified in the guide's references.\n\nCONTACT\ncristianvitortrucco@gmail.com\n\nIndependent educational publication. The use of ChatGPT as a supporting tool does not constitute technical validation or endorsement by OpenAI. Architecture and code examples must be adapted and validated before production use.",
+      "author": "chatgpt-translation",
+      "reviews": {}
+    }
+  ]
+}
