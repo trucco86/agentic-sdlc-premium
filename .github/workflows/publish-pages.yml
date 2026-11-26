@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'scripts/build_full_html.py'
+      - 'scripts/build_bilingual_reader.py'
+      - 'scripts/translation_gate.py'
+      - 'scripts/translation_inventory.py'
+      - 'editorial/releases/en-v0.6.json'
       - 'source/current.pdf'
       - 'editorial/source_manifest.json'
       - '.github/workflows/publish-pages.yml'
@@ -36,6 +40,14 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Build complete HTML edition
         run: python scripts/build_full_html.py
+      - name: Add reader navigation and approved English edition
+        run: |
+          edition=editorial/releases/en-v0.6.json
+          if [[ -f "$edition" ]]; then
+            python scripts/build_bilingual_reader.py --english-edition "$edition"
+          else
+            python scripts/build_bilingual_reader.py
+          fi
       - name: Validate output and exclude source PDF
         run: |
           python - <<'PY'
@@ -44,9 +56,13 @@ jobs:
           site = Path("build/full-html")
           data = json.loads((site/"build-manifest.json").read_text())
           assert data["pages"] == 323
-          assert len(list(site.glob("*.html"))) == 1
+          english = Path("editorial/releases/en-v0.6.json").is_file()
+          expected = {"index.html", "en/index.html"} if english else {"index.html"}
+          assert {path.relative_to(site).as_posix() for path in site.rglob("*.html")} == expected
           assert (site/"index.html").read_text().count('<section class="page"') == 323
           assert (site/"index.html").is_file()
+          if english:
+              assert (site/"en/index.html").read_text().count('aria-label="Source page ') == 323
           assert not list(site.rglob("*.pdf")), "PDF must not be published"
           PY
       - uses: actions/configure-pages@v5
@@ -80,7 +96,11 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in $(seq 1 20); do
-            if curl -fsSL --max-time 60 "https://trucco86.github.io/agentic-sdlc-premium/?v=$GITHUB_SHA" -o /tmp/public-book.html && cmp -s /tmp/public-book.html build/full-html/index.html; then
+            if curl -fsSL --max-time 60 "https://trucco86.github.io/agentic-sdlc-premium/?v=$GITHUB_SHA" -o /tmp/public-book.html &&
+              cmp -s /tmp/public-book.html build/full-html/index.html &&
+              { [[ ! -f build/full-html/en/index.html ]] ||
+                { curl -fsSL --max-time 60 "https://trucco86.github.io/agentic-sdlc-premium/en/?v=$GITHUB_SHA" -o /tmp/public-book-en.html &&
+                  cmp -s /tmp/public-book-en.html build/full-html/en/index.html; }; }; then
               echo "Public HTML matches complete generated book"
               exit 0
             fi
