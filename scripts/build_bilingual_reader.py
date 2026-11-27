@@ -1,12 +1,15 @@
 """Render the English reader for translation units approved by the editorial gate."""
 
 import argparse
+from base64 import b64encode
 from html import escape
 import json
 from pathlib import Path
 import re
 
 import fitz
+
+COVER_ART = Path(__file__).resolve().parents[1] / "editorial/assets/english-cover.webp"
 
 EDITION = "Agentic SDLC Premium V0.6"
 URL = re.compile(
@@ -64,7 +67,9 @@ html:has(.edition-back) main{padding-bottom:4.5rem}
 ART_STYLE = """
 .cover-lead,.map-banner{border-radius:18px;padding:clamp(1.1rem,4vw,2.5rem)}
 .cover-lead{background:radial-gradient(ellipse at 85% 25%,#24598a,#112842 65%);
-    border:1px solid #4875a0;margin-bottom:1.2rem}
+    border:1px solid #4875a0;margin-bottom:1.2rem;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:1.2rem;align-items:center}
+.cover-art{display:block;width:100%;height:auto;border-radius:12px}
+@media(max-width:620px){.cover-lead{grid-template-columns:1fr}}
 .cover-lead h1{margin:.65rem 0;color:#fff}.cover-lead strong{color:#82c5ff}
 .cover-lead p{margin:.4rem 0;color:#d3eaff}.cover-route,.flow-steps{display:flex;flex-wrap:wrap;gap:.55rem;
     list-style:none;padding:0;margin:1.15rem 0}
@@ -76,12 +81,20 @@ ART_STYLE = """
     background:#f6f9fc;padding:.85rem;font-size:.9rem}
 .map-card h3{font-size:.98rem;line-height:1.35;margin:0 0 .55rem;color:#173c61}
 .map-card ol{margin:0;padding-left:1.7rem}.map-card li+li{margin-top:.19rem}
+.map-hub{max-width:26rem;margin:1.25rem auto 0;padding:.85rem 1rem;color:#fff;background:#173c61;
+    text-align:center;border-radius:12px;white-space:pre-wrap}
+.map-branch{width:2px;height:1.3rem;background:#377eaa;margin:auto}
 .flow-figure{margin:1rem 0;padding:1rem 1.2rem;background:#edf5ff;border:1px solid #c0d4e7;border-radius:12px}
 .flow-figure figcaption{font-size:.87rem;font-weight:700;letter-spacing:.03em;color:#244769}
 .flow-steps{margin:.65rem 0 0}
 .flow-steps li{background:#fff;color:#173652;font-size:.92rem}
 .flow-steps b{display:inline-block;margin-right:.42rem;color:#215f95}
 .atlas-diagram{margin-top:.65rem;font:500 .9rem/1.55 system-ui;color:#173652;white-space:pre-wrap}
+.diagram-nodes{display:flex;flex-wrap:wrap;gap:.55rem;align-items:stretch;margin:.45rem 0}
+.diagram-nodes>*{flex:1 1 8.5rem;display:grid;align-content:center;padding:.55rem .7rem;background:white;
+    border:1px solid #b6c9dd;border-radius:8px;text-align:center}
+.diagram-arrow{display:block;text-align:center;font-weight:700;color:#215f95}
+#page-080 th:last-child,#page-080 td:last-child{min-width:7.1rem;overflow-wrap:normal}
 @media print{.cover-lead{background:#10243f;print-color-adjust:exact}.map-card,.flow-figure{break-inside:avoid}}
 """
 SCRIPT = """
@@ -245,11 +258,14 @@ def build_cover(markdown):
     cover = lines(markdown)
     route_index = next(i for i, line in enumerate(cover) if " → " in line)
     route = "".join(f"<li>{escape(stop.title())}</li>" for stop in cover[route_index].split(" → "))
+    artwork = b64encode(COVER_ART.read_bytes()).decode("ascii")
     visual = (
-        '<div class="cover-lead">'
+        '<div class="cover-lead"><div>'
         f'<p>{escape(cover[0])}</p><p><strong>{escape(cover[1])}</strong></p>'
         f'<h1>{escape(cover[2])}</h1><p>{escape(cover[3])}</p><p>{escape(cover[4])}</p>'
         f'<p>{escape(cover[5])}</p><p>{escape(cover[6])}</p></div>'
+        f'<img class="cover-art" src="data:image/webp;base64,{artwork}" width="1122" height="1402" '
+        'alt="A luminous blue circuit profile overlooks an amber road climbing a mountain at sunrise."></div>'
         f'<ul class="cover-route">{route}</ul>'
         + "".join(f"<p>{escape(line)}</p>" for line in cover[route_index + 1:])
     )
@@ -272,13 +288,13 @@ def build_map(markdown):
     if len(cards) != 12:
         raise ValueError("Mind map must contain twelve sections")
     intro = lines("\n".join(deck[1:4]))
-    closing = "".join(
-        f'<p class="page-body">{escape(block)}</p>' for block in deck[16:]
-    )
+    hub = f'<div class="map-hub">{escape(deck[16])}</div><div class="map-branch" aria-hidden="true"></div>'
+    closing = "".join(f'<p class="page-body">{escape(block)}</p>' for block in deck[17:])
     return (
         '<div class="map-banner"><h2>Agentic SDLC Mind Map</h2>'
         + "".join(f"<p>{escape(line)}</p>" for line in intro[2:])
-        + '</div><div class="map-grid">' + "".join(cards) + "</div>" + closing
+        + '</div><div role="group" aria-label="Twelve branches of the Agentic SDLC mind map">'
+        + hub + '<div class="map-grid">' + "".join(cards) + "</div></div>" + closing
     )
 
 
@@ -298,24 +314,40 @@ def flow_figure(match):
     )
 
 
-def build_atlas_figure(document, page, caption):
+def build_special_figure(document, page, caption, pattern):
     section = re.search(rf'(<section[^>]* id="page-{page:03}"[^>]*>)([\s\S]*?)(</section>)', document)
     if not section:
-        raise ValueError(f"Missing atlas page {page}")
-    pattern = {
-        317: r"(Versioned spec \+ acceptance criteria\n[\s\S]*?Evidence \+ CI Gate)",
-        318: r"(Customer \| Checkout \| Gateway \| Persistence\n[\s\S]*?6\. Checkout → Customer:[^\n]*)",
-        320: r"(Build \+ tests \+ evidence\n[\s\S]*?YES → Approve with an audit trail)",
-    }[page]
+        raise ValueError(f"Missing diagram page {page}")
     body, count = re.subn(
         pattern,
         lambda match: f'<figure class="flow-figure"><figcaption>{caption}</figcaption>'
-                      f'<div class="atlas-diagram">{match[1]}</div></figure>',
+                      f'<div class="atlas-diagram">{diagram_nodes(page, match[1])}</div></figure>',
         section[2],
     )
     if count != 1:
-        raise ValueError(f"Could not identify diagram content on atlas page {page}")
+        raise ValueError(f"Could not identify diagram content on page {page}")
     return document[:section.start(2)] + body + document[section.end(2):]
+
+
+def diagram_nodes(page, content):
+    def nodes(values):
+        return '<div class="diagram-nodes">' + "".join(f"<span>{value}</span>" for value in values) + "</div>"
+
+    arrow = '<span class="diagram-arrow" aria-hidden="true">↓</span>'
+    if page == 16:
+        return arrow.join(nodes([line]) for line in content.splitlines())
+    if page in (50, 317):
+        stages = [line.strip() for line in content.splitlines() if line.strip() != "↓"]
+        paths = stages[2].removeprefix("Parallel validation paths: ").split(" | ")
+        return arrow.join([nodes([stages[0]]), nodes([stages[1]]), nodes(paths)]
+                          + [nodes([stage]) for stage in stages[3:]])
+    if page in (51, 53):
+        stages = content.split(" → ")
+        return arrow.join(nodes(stage.split(" | ")) for stage in stages)
+    if page == 280:
+        route, results = content.split("\n↓\n", 1)
+        return arrow.join([*(nodes([stage]) for stage in route.split(" → ")), nodes(results.splitlines())])
+    return content
 
 
 def add_visuals(document, units):
@@ -324,9 +356,18 @@ def add_visuals(document, units):
     document, figures = FLOW.subn(flow_figure, document)
     if figures < 8:
         raise ValueError(f"Expected the translated flow diagrams to render, got {figures}")
-    atlas = {317: "Reference architecture", 318: "Payment sequence", 320: "Release decision"}
-    for page, caption in atlas.items():
-        document = build_atlas_figure(document, page, caption)
+    figures_by_page = {
+        16: ("Agent → Harness → MCP tools", r"(Planning agent —[^\n]+\nExecution harness —[^\n]+\nMCP tools —[^\n]+)"),
+        50: ("Validation fan-out", r"(Spec and acceptance criteria\n[\s\S]*?Contract / OpenAPI)"),
+        51: ("Payment call sequence", r"(Customer → Checkout → Gateway → Ledger)"),
+        53: ("Release decision", r"(Build and critical tests → Deterministic gate → Fail: Block \| Pass: Approve)"),
+        280: ("Budget, cost, and acceptance", r"(Task Contract → Risk Gate → Budget Ledger → Model Router\n[\s\S]*?ACCEPTANCE — Merge / rework)"),
+        317: ("Reference architecture", r"(Versioned spec \+ acceptance criteria\n[\s\S]*?Evidence \+ CI Gate)"),
+        318: ("Payment sequence", r"(Customer \| Checkout \| Gateway \| Persistence\n[\s\S]*?6\. Checkout → Customer:[^\n]*)"),
+        320: ("Release decision", r"(Build \+ tests \+ evidence\n[\s\S]*?YES → Approve with an audit trail)"),
+    }
+    for page, (caption, pattern) in figures_by_page.items():
+        document = build_special_figure(document, page, caption, pattern)
     document = insert_once(document, "</head>", f"<style>{ART_STYLE}</style></head>")
     return document
 
@@ -392,3 +433,4 @@ if __name__ == "__main__":
     parser.add_argument("--english-edition", type=Path)
     args = parser.parse_args()
     build(args.output, args.source, args.manifest, args.english_edition)
+
