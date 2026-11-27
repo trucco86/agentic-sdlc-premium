@@ -15,16 +15,17 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m unittest discover -s tests -v
       - run: python scripts/translation_inventory.py
-      - name: Prepare first translation batch
+      - name: Prepare translation-first batch
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          from scripts.editorial_queue import plan
+          from scripts.translation_batch import prepare_batch
+
           folder = Path("build/translation")
-          inv = json.loads((folder/"inventory.json").read_text())
+          inv = json.loads((folder / "inventory.json").read_text())
           assert len(inv["units"]) == 323
-          edition = {"source_sha256":inv["source_sha256"],"language":"en","units":[]}
+          edition = {"source_sha256": inv["source_sha256"], "language": "en", "units": []}
           seen = set()
           for file in sorted(Path("editorial/translations/en").glob("*.json")):
               record = json.loads(file.read_text(encoding="utf-8"))
@@ -35,11 +36,16 @@ jobs:
                       raise ValueError(f"Duplicate translation page: {unit['page']}")
                   seen.add(unit["page"])
                   edition["units"].append(unit)
-          tasks = plan(inv,edition)
-          selected = tasks[:10]
-          pages = {task["page"] for task in selected}
-          batch = {"source_sha256":inv["source_sha256"],"units":[u for u in inv["units"] if u["page"] in pages],"tasks":selected,"remaining":len(tasks)}
-          (folder/"first-batch.json").write_text(json.dumps(batch,ensure_ascii=False,indent=2))
+
+          batch = prepare_batch(inv, edition, limit=25)
+          (folder / "first-batch.json").write_text(
+              json.dumps(batch, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          print(
+              f"Translation pages pending: {batch['translation_remaining']}; "
+              f"review tasks pending: {batch['review_remaining']}; "
+              f"translation batch size: {len(batch['translation_units'])}"
+          )
           PY
       - uses: actions/upload-artifact@v4
         with:
